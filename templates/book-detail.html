@@ -52,6 +52,8 @@
         <!-- Dynamically filled -->
       </div>
 
+
+
       <!-- Add to Bookshelf -->
       <div class="bg-white text-black p-6 rounded-2xl shadow space-y-4">
         <h2 class="text-xl font-bold">📚 Add to Bookshelf</h2>
@@ -67,50 +69,94 @@
         </div>
       </div>
 
+      <div id="reviewsSection" class="bg-white text-black p-6 rounded-2xl shadow space-y-4">
+        <h2 class="text-xl font-bold mb-2">📝 User Reviews</h2>
+      
+        {% if reviews %}
+          {% for review in reviews %}
+            <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 shadow-sm">
+              <!-- Top Row: User Info -->
+              <div class="flex items-center mb-2 space-x-3">
+                <img src="{{ user.profile_pic or 'https://i.pravatar.cc/60' }}"
+                     alt="User DP" class="w-10 h-10 rounded-full object-cover border border-purple-300">
+                <div>
+                  <p class="font-semibold">{{ review.get('display_name', review.username) }}</p>
+                  <p class="text-xs text-gray-500">@{{ review.username }} • {{ review.created_at.strftime('%d %b %Y, %I:%M %p') }}</p>
+                </div>
+              </div>
+      
+              <!-- Rating -->
+              <div class="mb-2">
+                <p class="text-purple-600 font-semibold">Rating: {{ review.rating }}/5 ⭐</p>
+              </div>
+      
+              <!-- Review Text -->
+              <p class="mb-2 text-gray-800">{{ review.review_text }}</p>
+      
+              <!-- Tags as circular badges -->
+              {% if review.tags %}
+                <div class="flex flex-wrap gap-2 mt-2">
+                  {% for tag in review.tags %}
+                    <span class="px-3 py-1 bg-purple-100 text-purple-700 text-sm rounded-full border border-purple-300">
+                      {{ tag }}
+                    </span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-gray-500">No reviews yet. Be the first to leave one!</p>
+        {% endif %}
+      </div>
+          
+
       <!-- Leave a Review -->
       <div class="bg-white text-black p-6 rounded-2xl shadow space-y-4">
-        <h2 class="text-xl font-bold">⭐ Write a Review</h2>
-        <div class="space-y-2">
-          <label class="block font-medium">Rating</label>
-          <select id="rating" class="w-full p-2 border border-gray-300 rounded">
-            <option>1 ⭐</option>
-            <option>2 ⭐⭐</option>
-            <option>3 ⭐⭐⭐</option>
-            <option>4 ⭐⭐⭐⭐</option>
-            <option>5 ⭐⭐⭐⭐⭐</option>
-          </select>
-
-          <label class="block font-medium mt-2">Review</label>
-          <textarea class="w-full p-2 border border-gray-300 rounded" rows="4" placeholder="What did you think about the book?"></textarea>
-          <button class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Submit Review</button>
-        </div>
-      </div>
+      <form method="POST" action="/submit-review">
+        <!-- Hidden input for book_key -->
+        <input type="hidden" name="book_key" value="{{ book_key }}">
+        <label class="block font-medium mb-1">Rating (0.25 increments)</label>
+        <input type="number" name="rating" step="0.25" min="0" max="5" class="w-full p-2 border border-gray-300 rounded mb-4" placeholder="e.g. 4.25" required>
+    
+        <label class="block font-medium mb-1">Tags (comma-separated)</label>
+        <input type="text" name="tags" class="w-full p-2 border border-gray-300 rounded mb-4" placeholder="e.g. slow-burn, plot twist, enemies-to-lovers">
+    
+        <label class="block font-medium mb-1">Review</label>
+        <textarea name="review_text" class="w-full p-2 border border-gray-300 rounded mb-4" rows="4" placeholder="What did you think about the book?" required></textarea>
+    
+        <button type="submit" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Submit Review</button>
+    </form>
+  </div>
+      
     </main>
 
-    <!-- Right Sidebar -->
-    <aside class="lg:col-span-1 space-y-6 sticky top-4 self-start">
-      <div class="bg-white text-black p-4 rounded-2xl shadow">
-        <h2 class="font-bold text-lg mb-2">📖 Recommendations</h2>
-        <ul class="space-y-2 text-sm">
-          <li>• If We Were Villains</li>
-          <li>• The Secret History</li>
-          <li>• Six of Crows</li>
-        </ul>
-      </div>
+  <!-- Right Sidebar -->
+  <aside class="lg:col-span-1 space-y-6 sticky top-4 self-start">
+    <div class="bg-white text-black p-4 rounded-2xl shadow">
+      <h2 class="font-bold text-lg mb-2">📖 Recommendations</h2>
+      <ul class="space-y-2 text-sm">
+        <li>• If We Were Villains</li>
+        <li>• The Secret History</li>
+        <li>• Six of Crows</li>
+      </ul>
+    </div>
 
-      <div class="bg-white text-black p-4 rounded-2xl shadow">
-        <h2 class="font-bold text-lg mb-2">🔥 Trending Books</h2>
-        <ul class="space-y-2 text-sm">
-          <li>• A Little Life</li>
-          <li>• Iron Flame</li>
-          <li>• Divine Rivals</li>
-        </ul>
-      </div>
-    </aside>
+    <div class="bg-white text-black p-4 rounded-2xl shadow">
+      <h2 class="font-bold text-lg mb-2">🔥 Trending Books</h2>
+      <ul class="space-y-2 text-sm">
+        <li>• A Little Life</li>
+        <li>• Iron Flame</li>
+        <li>• Divine Rivals</li>
+      </ul>
+    </div>
+  </aside>
   </div>
+</div>
+
 
   <script>
-  const bookKey = "/{{ book_key }}"; // <-- passed from Flask route
+const bookKey = "/{{ book_key }}"; // <-- passed from Flask route
 
 async function loadBookDetails() {
   if (!bookKey) {
@@ -118,6 +164,7 @@ async function loadBookDetails() {
     return;
   }
 
+  // Fetch book details from Open Library API
   const res = await fetch(`https://openlibrary.org${bookKey}.json`);
   const book = await res.json();
 
@@ -128,12 +175,14 @@ async function loadBookDetails() {
     ? `https://covers.openlibrary.org/b/id/${coverID}-L.jpg`
     : 'https://via.placeholder.com/200x300?text=No+Cover';
 
+  // Fetch the author data
   const authorRes = book.authors?.[0]?.author?.key
     ? await fetch(`https://openlibrary.org${book.authors[0].author.key}.json`)
     : null;
   const authorData = authorRes ? await authorRes.json() : null;
   const authorName = authorData?.name || "Unknown Author";
 
+  // Generate book details HTML
   document.getElementById('bookDetails').innerHTML = `
     <div class="flex flex-col md:flex-row gap-6">
       <img src="${coverURL}" class="w-40 h-60 object-cover rounded shadow" />
@@ -144,9 +193,54 @@ async function loadBookDetails() {
       </div>
     </div>
   `;
+
+  // Fetch reviews for this book (assuming the reviews are stored at an endpoint like `/reviews/<book_key>`)
+  const reviewsRes = await fetch(`/reviews/${bookKey}`);
+  const reviews = await reviewsRes.json();
+
+  // Generate reviews section HTML
+  let reviewsHtml = `<h2 class="text-xl font-bold">Reviews:</h2>`;
+
+  if (reviews.length > 0) {
+    reviewsHtml += reviews.map(review => `
+      <div class="border-t pt-4">
+        <strong>${review.username}</strong> - ${review.rating} ⭐
+        <p>${review.review_text}</p>
+        ${review.tags && review.tags.length > 0
+          ? `<p><strong>Tags:</strong> ${review.tags.join(', ')}</p>`
+          : ''}
+      </div>
+    `).join('');
+  } else {
+    reviewsHtml += '<p>No reviews yet.</p>';
+  }
+
+  document.getElementById('reviewsSection').innerHTML = reviewsHtml;
 }
 
+fetch("/get-reviews/{{ book_key }}")
+    .then(response => response.json())
+    .then(data => {
+      const container = document.getElementById("reviewsSection");
+      if (data.reviews.length === 0) {
+        container.innerHTML = "<p class='text-gray-500'>No reviews yet.</p>";
+      } else {
+        data.reviews.forEach(review => {
+          const div = document.createElement("div");
+          div.className = "border-b border-gray-200 pb-4";
+          div.innerHTML = `
+            <p class="text-sm text-gray-600">⭐ ${review.rating} • ${review.tags.join(", ")}</p>
+            <p class="mt-1">${review.text}</p>
+            <p class="text-xs text-gray-500">by ${review.username}</p>
+          `;
+          container.appendChild(div);
+        });
+      }
+    });
+
+
 window.onload = loadBookDetails;
+
 
 
   </script>

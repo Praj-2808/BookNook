@@ -20,6 +20,8 @@ users_collection = mongo.db.users
 books_collection = mongo.db.books
 playlists_collection = mongo.db.playlists
 posts_collection = mongo.db.posts
+reviews_collection=mongo.db.reviews
+
 
 @app.route('/')
 def index():
@@ -227,9 +229,61 @@ def book_detail(book_key):
     # Fetch the user details from the database
     user = users_collection.find_one({'username': session['username']})
     if not user:
-        return redirect(url_for('login'))  
-    
-    return render_template('book-detail.html', book_key=book_key, user=user)
+        return redirect(url_for('login')) 
 
+    reviews = reviews_collection.find({'book_key': book_key}) 
+    
+    return render_template('book-detail.html', book_key=book_key, user=user, reviews=reviews)
+
+#Everything is perfect till here
+
+def get_book_data(book_key):
+    # Fetch detailed book data using the Open Library API
+    api_url = f"https://openlibrary.org{book_key}.json"
+    response = requests.get(api_url)
+
+    if response.status_code == 200:
+        return response.json()  # Return the book data if successful
+    else:
+        return None  # Return None if the request fails
+
+@app.route("/submit-review", methods=["POST"])
+def submit_review():
+    if 'username' not in session:
+        return redirect(url_for('login'))  # Redirect to login if the user is not logged in
+    
+    # Fetch the user details from the database
+    user = users_collection.find_one({'username': session['username']})
+    if not user:
+        return redirect(url_for('login'))  # Redirect if no user is found
+
+    # Get review details from the form
+    book_key = request.form.get('book_key')  # Use .get() to avoid KeyError
+    if not book_key:
+        return "Book key is required", 400  # Return a proper error message if no book_key
+
+    try:
+        rating = float(request.form['rating'])  # Ensure the rating is a valid float
+    except ValueError:
+        return "Invalid rating value", 400  # Handle invalid rating input gracefully
+    
+    review_text = request.form['review_text']
+    tags = request.form.getlist('tags')  # This allows multiple tags
+
+    # Save the review in the database
+    review = {
+        "username": user['username'],
+        "book_key": book_key,
+        "rating": rating,
+        "review_text": review_text,
+        "tags": tags,
+        "created_at": datetime.utcnow()
+    }
+    reviews_collection.insert_one(review)
+
+    print("Form Data Received:", request.form)
+
+    return redirect(url_for('book_detail', book_key=book_key))  # Redirect to the book's detail page
 if __name__ == '__main__':
     app.run(debug=True)
+
