@@ -18,7 +18,7 @@ mongo = PyMongo(app)
 # Collections
 users_collection = mongo.db.users
 books_collection = mongo.db.books
-playlists_collection = mongo.db.playlists
+bookshelves_collection = mongo.db.bookshelves
 posts_collection = mongo.db.posts
 reviews_collection=mongo.db.reviews
 
@@ -284,6 +284,238 @@ def submit_review():
     print("Form Data Received:", request.form)
 
     return redirect(url_for('book_detail', book_key=book_key))  # Redirect to the book's detail page
+
+@app.route("/reviews") 
+def my_reviews():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    sort = request.args.get('sort', 'newest')
+    user = users_collection.find_one({'username': session['username']})
+
+    sort_query = [('created_at', -1)]  # Default: newest
+    if sort == 'oldest':
+        sort_query = [('created_at', 1)]
+    elif sort == 'highest':
+        sort_query = [('rating', -1)]
+    elif sort == 'lowest':
+        sort_query = [('rating', 1)]
+
+    reviews = list(reviews_collection.find({'username': session['username']}).sort(sort_query))
+
+    # Attach fallback and book detail URL, and fetch book title + cover
+    for review in reviews:
+        book_key = review.get('book_key', 'OL0000000M')
+        review['book_key'] = book_key
+        review['book_url'] = f"/book/{book_key}"
+        
+        try:
+            res = requests.get(f"https://openlibrary.org/{book_key}.json")
+            if res.status_code == 200:
+                data = res.json()
+                review['book_title'] = data.get('title', 'Unknown Title')
+
+                # Try to get cover from "covers" field
+                if 'covers' in data and len(data['covers']) > 0:
+                    cover_id = data['covers'][0]
+                    review['book_cover_url'] = f"https://covers.openlibrary.org/b/id/{cover_id}-L.jpg"
+                else:
+                    review['book_cover_url'] = "/static/default_cover.jpg"
+            else:
+                review['book_title'] = 'Unknown Title'
+                review['book_cover_url'] = "/static/default_cover.jpg"
+        except Exception as e:
+            print(f"Error fetching data for {book_key}: {e}")
+            review['book_title'] = 'Unknown Title'
+            review['book_cover_url'] = "/static/default_cover.jpg"
+
+    return render_template("my-reviews.html", user=user, reviews=reviews, sort=sort)
+
+
+@app.route("/delete_review/<review_id>", methods=["POST"])
+def delete_review(review_id):
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    review = reviews_collection.find_one({"_id": ObjectId(review_id)})
+    if review and review['username'] == session['username']:
+        reviews_collection.delete_one({"_id": ObjectId(review_id)})
+        flash("Review deleted successfully!", "success")
+    else:
+        flash("You can only delete your own reviews.", "error")
+
+    return redirect(url_for("my_reviews"))
+
+@app.route('/bookshelves')
+def bookshelves():
+    if 'username' not in session:
+        return redirect('/login')
+
+    username = session['username']
+    user_shelves = list(bookshelves_collection.find({'username': username}))
+
+    all_bookshelves = []
+
+    for shelf in user_shelves:
+        shelf_name = shelf['shelf_name']
+        book_keys = shelf.get('books', [])
+
+        detailed_books = []
+
+        for key in book_keys:
+            book_data = fetch_book_details(key)
+            detailed_books.append(book_data)
+
+        all_bookshelves.append({
+            'shelf_name': shelf_name,
+            'books': detailed_books
+        })
+
+    user = users_collection.find_one({'username': username})
+
+    return render_template('bookshelves.html', bookshelves=all_bookshelves, user=user)
+
+
+@app.route('/add-to-shelf', methods=['POST'])
+def add_to_shelf():
+    if 'username' not in session:
+        return jsonify({'success': False, 'message': 'Not logged in'}), 401
+
+    data = request.json
+    shelf_name = data.get('shelf')
+    book_key = data.get('book_key')
+
+    if not shelf_name or not book_key:
+        return jsonify({'success': False, 'message': 'Invalid data'}), 400
+
+    username = session['username']
+
+    # Check if the shelf already exists
+    bookshelf = bookshelves_collection.find_one({
+        'username': username,
+        'shelf_name': shelf_name
+    })
+
+    if bookshelf:
+        if book_key not in bookshelf['books']:
+            bookshelves_collection.update_one(
+                {'_id': bookshelf['_id']},
+                {
+                    '$push': {'books': book_key},
+                    '$set': {'updated_at': datetime.utcnow()}
+                }
+            )
+    else:
+        # Create new shelf with the book
+        bookshelves_collection.insert_one({
+            'username': username,
+            'shelf_name': shelf_name,
+            'books': [book_key],
+            'created_at': datetime.utcnow(),
+            'updated_at': datetime.utcnow()
+        })
+
+    # ✅ Success response for frontend (or redirect if you're not using fetch)
+    return jsonify({'success': True, 'message': f'Book added to "{shelf_name}"!'})
+
+@app.route('/delete-shelf', methods=['POST'])
+def delete_shelf():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    # Get the shelf name from the request
+    data = request.get_json()
+    shelf_name = data.get('shelf_name')
+    if not shelf_name:
+        return jsonify({'success': False, 'message': 'Shelf name is required'}), 400
+
+    # Find the bookshelf document by username and shelf name
+    bookshelf = bookshelves_collection.find_one({'username': session['username'], 'shelf_name': shelf_name})
+    if not bookshelf:
+        return jsonify({'success': False, 'message': 'Shelf not found'}), 404
+
+    # Delete the shelf from the bookshelves collection
+    bookshelves_collection.delete_one({'_id': bookshelf['_id']})
+
+    return jsonify({'success': True, 'message': f'Shelf "{shelf_name}" deleted successfully'})
+
+@app.route("/remove-from-bookshelf", methods=["POST"])
+def remove_from_bookshelf():
+    if 'username' not in session:
+        return jsonify({'success': False, 'message': 'User not logged in'}), 401  # Return JSON for errors
+
+    user = users_collection.find_one({'username': session['username']})
+    if not user:
+        return jsonify({'success': False, 'message': 'User not found'}), 404  # Return JSON for errors
+
+    data = request.get_json()
+    if not data or 'book_key' not in data or 'shelf_name' not in data:
+        return jsonify({'success': False, 'message': 'Missing book_key or shelf_name'}), 400  # Return JSON for errors
+
+    book_key = data['book_key']
+    bookshelf_name = data['shelf_name']
+
+    # Find the bookshelf in the bookshelves_collection and remove the book
+    bookshelf = bookshelves_collection.find_one({'shelf_name': bookshelf_name, 'username': session['username']})
+
+    if bookshelf:
+        # Remove the book from the shelf
+        updated_books = [book for book in bookshelf['books'] if book['key'] != book_key]
+
+        # Update the bookshelf in the database
+        result = bookshelves_collection.update_one(
+            {'shelf_name': bookshelf_name, 'username': session['username']},
+            {'$set': {'books': updated_books}}
+        )
+
+        if result.modified_count > 0:
+            return jsonify({'success': True})
+
+    return jsonify({'success': False, 'message': 'Bookshelf not found or error occurred'}), 400  # Return JSON for errors
+
+def fetch_book_details(work_key):
+    try:
+        # Extract the actual ID from "works/OL82563W"
+        work_id = work_key.split("/")[-1]
+        work_url = f"https://openlibrary.org/works/{work_id}.json"
+        work_data = requests.get(work_url).json()
+
+        title = work_data.get('title', 'Unknown Title')
+
+        # Get author name
+        author_name = "Unknown Author"
+        if 'authors' in work_data and len(work_data['authors']) > 0:
+            author_key = work_data['authors'][0].get('author', {}).get('key')
+            if author_key:
+                author_url = f"https://openlibrary.org{author_key}.json"
+                author_data = requests.get(author_url).json()
+                author_name = author_data.get('name', 'Unknown Author')
+
+        # Get cover image
+        cover_id = work_data.get('covers', [None])[0]
+        if cover_id:
+            cover_url = f"https://covers.openlibrary.org/b/id/{cover_id}-L.jpg"
+        else:
+            cover_url = "https://via.placeholder.com/150x200?text=No+Cover"
+
+        return {
+            'key': work_key,
+            'title': title,
+            'author': author_name,
+            'cover': cover_url
+        }
+
+    except Exception as e:
+        print(f"Error fetching book details: {e}")
+        return {
+            'key': work_key,
+            'title': 'Unknown Title',
+            'author': 'Unknown Author',
+            'cover': "https://via.placeholder.com/150x200?text=No+Cover"
+        }
+
+
+
 if __name__ == '__main__':
     app.run(debug=True)
 

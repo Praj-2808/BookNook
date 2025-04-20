@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Reviews</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="font-sans text-gray-800 min-h-screen" style="background: linear-gradient(to bottom right, rgba(0,0,0,0.9), rgba(58,25,94,0.6));">
+
+  <!-- Header -->
+  <header class="text-center py-6 text-white text-3xl font-bold tracking-wider">
+     Book Nook
+  </header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 p-4 max-w-7xl mx-auto">
+    
+    <!-- Left Sidebar -->
+    <aside class="lg:col-span-1 space-y-6 sticky top-4 self-start">
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <div class="flex items-center space-x-4">
+          <img src="{{ user.profile_pic or 'https://i.pravatar.cc/60' }}" class="rounded-full w-12 h-12">
+          <div>
+            <h2 class="font-bold text-lg">{{ user.name }}</h2>
+            <p class="text-sm text-gray-500">@{{ user.username }}</p>
+            <p class="text-sm text-gray-500">📖 Reading: {{ user.currently_reading }}</p>
+          </div>
+        </div>
+      </div>
+
+      <nav class="bg-white p-4 rounded-2xl shadow space-y-3 text-base">
+        <a href="/bookshelves" class="block hover:underline">📚 My Bookshelves</a>
+        <a href="/reviews" class="block hover:underline">✍️ My Reviews</a>
+        <a href="/recommend" class="block hover:underline">💬 Recommend</a>
+        <a href="/search" class="block hover:underline">🎯 Search</a>
+        <a href="/stats" class="block hover:underline">📊 Stats</a>
+        <a href="/logout" class="block text-red-600 hover:underline">🚪 Logout</a>
+      </nav>
+    </aside>
+
+    <!-- Main Review Section -->
+    <main class="lg:col-span-2 space-y-6" id="postFeed">
+        <div class="flex justify-between items-center">
+            <h2 class="text-2xl font-bold text-white">✍️ My Reviews</h2>
+            <form method="get" class="text-sm">
+                <label for="sort" class="text-white mr-2">Sort by:</label>
+                <select name="sort" id="sort" onchange="this.form.submit()" class="p-2 rounded">
+                    <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest</option>
+                    <option value="oldest" {% if sort == 'oldest' %}selected{% endif %}>Oldest</option>
+                    <option value="highest" {% if sort == 'highest' %}selected{% endif %}>Highest Rated</option>
+                    <option value="lowest" {% if sort == 'lowest' %}selected{% endif %}>Lowest Rated</option>
+                </select>
+            </form>
+        </div>
+    
+        {% if reviews %}
+            {% for review in reviews %}
+                {% set book_key = review.book_key or 'OL0000000M' %}
+                {% set book_title = review.book_title %}
+                {% set book_url = review.book_url %}
+    
+                <div class="bg-white p-6 rounded-2xl shadow space-y-4 flex flex-col md:flex-row gap-4">
+                    <!-- Book Cover with Link -->
+                    <a href="{{ url_for('book_detail', book_key=review.book_key) }}">
+                        <img src="https://covers.openlibrary.org/b/olid/{{ review.book_cover_id }}-L.jpg" 
+                             alt="Book Cover" 
+                             class="w-28 h-40 object-cover rounded shadow-md">
+                    </a>
+    
+                    <!-- Review Content -->
+                    <div class="flex-1 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-xl font-semibold">
+                                <a href="{{ url_for('book_detail', book_key=review.book_key) }}" class="text-purple-800 hover:underline">
+                                    {{ book_title }}
+                                </a>
+                            </h3>
+                            <form action="{{ url_for('delete_review', review_id=review._id) }}" method="POST" onsubmit="return confirm('Delete this review?');">
+                                <button type="submit" class="text-red-600 hover:underline text-sm">Delete</button>
+                            </form>
+                        </div>
+    
+                        <div class="text-yellow-500 font-bold">⭐ {{ review.rating }}/5</div>
+                        <p class="text-gray-700">{{ review.review_text }}</p>
+    
+                        {% if review.tags %}
+                            <div class="flex flex-wrap gap-2 mt-2">
+                                {% for tag in review.tags %}
+                                    <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">{{ tag }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+    
+                        <p class="text-xs text-gray-400 mt-2">Reviewed on {{ review.created_at.strftime('%b %d, %Y') }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-white text-lg">You haven’t left any reviews yet! 📚</p>
+        {% endif %}
+    </main>
+    
+    
+    
+      
+    <!-- Right Sidebar -->
+    <aside class="lg:col-span-1 space-y-6 sticky top-4 self-start">
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <h2 class="font-bold text-lg mb-2">📖 Recommendations</h2>
+        <ul class="space-y-2 text-sm">
+          <li>• If We Were Villains</li>
+          <li>• The Secret History</li>
+          <li>• Six of Crows</li>
+        </ul>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <h2 class="font-bold text-lg mb-2">🔥 Trending Books</h2>
+        <ul class="space-y-2 text-sm">
+          <li>• A Little Life</li>
+          <li>• Iron Flame</li>
+          <li>• Divine Rivals</li>
+        </ul>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <h2 class="font-bold text-lg mb-2">👯 Friends’ Activity</h2>
+        <ul class="space-y-2 text-sm">
+          <li>📌 Anya added <i>Daisy Jones</i></li>
+          <li>📖 Zara is reading <i>Normal People</i></li>
+          <li>✍️ Leo reviewed <i>Shatter Me</i></li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+</body>
+</html>

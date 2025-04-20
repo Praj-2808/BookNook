@@ -55,19 +55,34 @@
 
 
       <!-- Add to Bookshelf -->
-      <div class="bg-white text-black p-6 rounded-2xl shadow space-y-4">
-        <h2 class="text-xl font-bold">📚 Add to Bookshelf</h2>
-        <div class="space-y-2">
-          <select class="w-full p-2 border border-gray-300 rounded" id="bookshelfSelect">
-            <option value="">Select Existing Shelf</option>
-            <option value="favorites">Favorites</option>
-            <option value="to-read">To Read</option>
-            <option value="currently-reading">Currently Reading</option>
-          </select>
-          <input type="text" class="w-full p-2 border border-gray-300 rounded" placeholder="Or Create New Shelf" id="newShelfInput" />
-          <button class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Add Book</button>
-        </div>
-      </div>
+      <!-- Add to Bookshelf Section -->
+<div class="bg-white text-black p-6 rounded-2xl shadow space-y-4">
+  <h2 class="text-xl font-bold">📚 Add to Bookshelf</h2>
+  
+  <!-- Select Existing Bookshelf -->
+  <div class="space-y-2">
+      <label for="bookshelfSelect" class="block text-sm">Select Bookshelf</label>
+      <select class="w-full p-2 border border-gray-300 rounded" id="bookshelfSelect">
+          <option value="">Select Existing Shelf</option>
+          <option value="favorites">Favorites</option>
+          <option value="to-read">To Read</option>
+          <option value="currently-reading">Currently Reading</option>
+      </select>
+  </div>
+
+  <!-- Create New Bookshelf -->
+  <div class="space-y-2">
+      <label for="newShelfInput" class="block text-sm">Or Create a New Shelf</label>
+      <input type="text" class="w-full p-2 border border-gray-300 rounded" placeholder="Enter New Shelf Name" id="newShelfInput" />
+  </div>
+  
+  <!-- Add Book Button -->
+  <button id="addBookBtn" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 w-full">
+    ➕ Add Book
+  </button>
+
+</div>
+
 
       <div id="reviewsSection" class="bg-white text-black p-6 rounded-2xl shadow space-y-4">
         <h2 class="text-xl font-bold mb-2">📝 User Reviews</h2>
@@ -241,6 +256,42 @@ fetch("/get-reviews/{{ book_key }}")
 
 window.onload = loadBookDetails;
 
+const bookshelfSelect = document.getElementById('bookshelfSelect');
+  const newShelfInput = document.getElementById('newShelfInput');
+  const addBookBtn = document.getElementById('addBookBtn');
+
+  addBookBtn.addEventListener('click', () => {
+    const selectedShelf = bookshelfSelect.value;
+    const newShelf = newShelfInput.value.trim();
+    const shelf = selectedShelf || newShelf;
+
+    if (!shelf) {
+      alert("Please select or create a shelf.");
+      return;
+    }
+
+    const bookKey = "{{ book_key }}";  // Passed from Flask backend
+
+    fetch('/add-to-shelf', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ shelf: shelf, book_key: bookKey })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert(data.message);
+      } else {
+        alert("Error: " + data.message);
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Something went wrong while adding the book.");
+    });
+  });
 
 
   </script>

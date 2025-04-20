@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bookshelf</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="font-sans text-gray-800 min-h-screen" style="background: linear-gradient(to bottom right, rgba(0,0,0,0.9), rgba(58,25,94,0.6));">
+
+  <!-- Book Nook Header -->
+  <header class="text-center py-6 text-white text-3xl font-bold tracking-wider">
+     Book Nook
+  </header>
+
+  <!-- Feed Container -->
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 p-4 max-w-7xl mx-auto">
+    
+    <!-- Left Sidebar -->
+    <aside class="lg:col-span-1 space-y-6 sticky top-4 self-start">
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <div class="flex items-center space-x-4">
+            <img src="{{ user.profile_pic or 'https://i.pravatar.cc/60' }}" class="rounded-full w-12 h-12">
+            <div>
+            <h2 class="font-bold text-lg">{{ user.name }}</h2>
+            <p class="text-sm text-gray-500">@{{ user.username }}</p>
+            <p class="text-sm text-gray-500">📖 Reading: {{ user.currently_reading }}</p>
+          </div>
+        </div>
+      </div>
+
+      <nav class="bg-white p-4 rounded-2xl shadow space-y-3 text-base">
+        <a href="/bookshelves" class="block hover:underline">📚 My Bookshelves</a>
+        <a href="/reviews" class="block hover:underline">✍️ My Reviews</a>
+        <a href="/recommend" class="block hover:underline">💬 Recommend</a>
+        <a href="/search" class="block hover:underline">🎯 Search</a>
+        <a href="/stats" class="block hover:underline">📊 Stats</a>
+        <a href="/logout" class="block text-red-600 hover:underline">🚪 Logout</a>
+      </nav>
+    </aside>
+
+    <!-- Main Feed -->
+    <main class="lg:col-span-2 space-y-6" id="bookshelfContainer">
+
+        {% for shelf in bookshelves %}
+        <div class="bg-white rounded-2xl shadow p-4">
+          <div class="flex justify-between items-center">
+            <h2 class="text-xl font-bold capitalize">{{ shelf.shelf_name }}</h2>
+            <button onclick="deleteShelf('{{ shelf.shelf_name }}')" class="text-red-500 hover:underline text-sm">🗑️ Delete Shelf</button>
+          </div>
+      
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+            {% for book in shelf.books %}
+            <div class="bg-gray-100 p-4 rounded-xl flex flex-col items-center text-center shadow hover:shadow-md transition">
+            <img src="{{ book.cover }}" class="h-40 object-contain mb-2 rounded" onerror="this.src='/static/default_cover.jpg'">
+
+              <p class="text-sm font-semibold truncate w-full">{{ book.title }}</p>
+              <p class="text-xs text-gray-600 truncate w-full">by {{ book.author }}</p>
+              <button onclick="deleteBook('{{ shelf.shelf_name }}', '{{ book.key }}')" class="text-xs text-red-500 hover:underline mt-2">Remove</button>
+
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      
+      </main>
+      
+
+    <!-- Right Sidebar -->
+    <aside class="lg:col-span-1 space-y-6 sticky top-4 self-start">
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <h2 class="font-bold text-lg mb-2">📖 Recommendations</h2>
+        <ul class="space-y-2 text-sm">
+          <li>• If We Were Villains</li>
+          <li>• The Secret History</li>
+          <li>• Six of Crows</li>
+        </ul>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <h2 class="font-bold text-lg mb-2">🔥 Trending Books</h2>
+        <ul class="space-y-2 text-sm">
+          <li>• A Little Life</li>
+          <li>• Iron Flame</li>
+          <li>• Divine Rivals</li>
+        </ul>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <h2 class="font-bold text-lg mb-2">👯 Friends’ Activity</h2>
+        <ul class="space-y-2 text-sm">
+          <li>📌 Anya added <i>Daisy Jones</i></li>
+          <li>📖 Zara is reading <i>Normal People</i></li>
+          <li>✍️ Leo reviewed <i>Shatter Me</i></li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Post Script (same as you had) -->
+  <script>
+
+function deleteShelf(shelfName) {
+    if (confirm(`Are you sure you want to delete the shelf "${shelfName}"?`)) {
+        fetch('/delete-shelf', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ shelf_name: shelfName }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();  // Refresh the page to reflect the change
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting shelf:', error);
+            alert('Error deleting shelf');
+        });
+    }
+}
+
+function deleteBook(shelfName, bookKey) {
+    const data = {
+      shelf_name: shelfName,
+      book_key: bookKey
+    };
+
+    console.log('Sending data to server:', data);
+
+    fetch('/remove-from-bookshelf', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)  // Send JSON data
+    })
+    .then(response => response.json())  // Always try to parse the response as JSON
+    .then(data => {
+      console.log('Server response:', data);  // Log the server's response
+      if (data.success) {
+        location.reload();  // Reload if success
+      } else {
+        alert('Error removing book from bookshelf: ' + data.message);  // Show the error message if present
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);  // Log the error
+      alert('Something went wrong: ' + error.message);
+    });
+  }
+
+
+</script>
+
+</body>
+</html>
