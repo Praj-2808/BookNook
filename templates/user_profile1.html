@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Book Nook - {{ user.name }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="font-sans text-gray-800 min-h-screen" style="background: linear-gradient(to bottom right, rgba(0,0,0,0.9), rgba(58,25,94,0.6));">
+
+  <header class="text-center py-6 text-white text-3xl font-bold tracking-wider">
+    Book Nook
+  </header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 p-6 max-w-7xl mx-auto">
+
+    <!-- Left Sidebar -->
+    <aside class="lg:col-span-1 space-y-6 sticky top-4 self-start">
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <div class="flex items-center space-x-4">
+          <img src="{{ user.profile_pic or 'https://i.pravatar.cc/60' }}" alt="User" class="rounded-full w-16 h-16">
+          <div>
+            <h2 class="font-bold text-lg">{{ user.name }}</h2>
+            <p class="text-sm text-gray-500">📖 Reading: {{ user.currently_reading }}</p>
+          </div>
+        </div>
+      </div>
+
+      <nav class="bg-white p-4 rounded-2xl shadow space-y-3 text-base">
+        <a href="/bookshelves" class="block hover:underline">📚 My Bookshelves</a>
+        <a href="/reviews" class="block hover:underline">✍️ My Reviews</a>
+        <a href="/recommend" class="block hover:underline">💬 Recommend</a>
+        <a href="/search" class="block hover:underline">🎯 Search</a>
+        <a href="/stats" class="block hover:underline">📊 Stats</a>
+        <a href="/logout" class="block text-red-600 hover:underline">🚪 Logout</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="lg:col-span-3 space-y-6">
+
+      <!-- Profile Overview -->
+      <section class="bg-white p-6 rounded-2xl shadow">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-bold">Profile</h2>
+          {% if is_owner %}
+            <a href="{{ url_for('edit_profile') }}" class="text-blue-600 hover:underline">Edit Profile</a>
+          {% else %}
+            <button class="bg-purple-600 text-white px-4 py-1 rounded-xl hover:bg-purple-700">Follow</button>
+          {% endif %}
+        </div>
+        <div class="space-y-4">
+          <div class="flex items-center space-x-4">
+            <img src="{{ user.profile_pic or 'https://i.pravatar.cc/60' }}" class="w-16 h-16 rounded-full" alt="Profile Picture">
+            <div>
+              <p class="font-semibold">{{ user.name }}</p>
+              <p class="text-gray-500">@{{ user.username }}</p>
+            </div>
+          </div>
+          <div>
+            <h3 class="font-bold text-lg">Bio</h3>
+            <p class="text-gray-700">{{ user.bio }}</p>
+          </div>
+          <div>
+            <h3 class="font-bold text-lg">Currently Reading</h3>
+            <p class="text-gray-700">{{ user.currently_reading }}</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-white p-6 rounded-2xl shadow">
+        <h2 class="text-2xl font-bold mb-4">Bookshelves</h2>
+        
+        <div class="space-y-4">
+          <!-- Currently Reading Shelf -->
+          <div class="bg-gray-100 p-4 rounded-xl flex flex-col items-center text-center shadow hover:shadow-md transition">
+            <h3 class="font-semibold text-lg">Currently Reading</h3>
+            <span class="text-gray-500">{{ user.currently_reading_count or 0 }} books</span>
+            {% for book in user.currently_reading_books %}
+            <div class="mt-2">
+              <img src="{{ book.cover }}" class="h-40 object-contain mb-2 rounded" onerror="this.src='/static/default_cover.jpg'">
+              <p class="text-sm font-semibold">{{ book.title }}</p>
+              <p class="text-xs text-gray-600">by {{ book.author }}</p>
+            </div>
+            {% endfor %}
+          </div>
+          
+          <!-- Favorites Shelf -->
+          <div class="bg-gray-100 p-4 rounded-xl flex flex-col items-center text-center shadow hover:shadow-md transition">
+            <h3 class="font-semibold text-lg">Favorites</h3>
+            <span class="text-gray-500">{{ user.favorites_count or 0 }} books</span>
+            {% for book in user.favorites_books %}
+            <div class="mt-2">
+              <img src="{{ book.cover }}" class="h-40 object-contain mb-2 rounded" onerror="this.src='/static/default_cover.jpg'">
+              <p class="text-sm font-semibold">{{ book.title }}</p>
+              <p class="text-xs text-gray-600">by {{ book.author }}</p>
+            </div>
+            {% endfor %}
+          </div>
+      
+          <!-- To Read Shelf -->
+          <div class="bg-gray-100 p-4 rounded-xl flex flex-col items-center text-center shadow hover:shadow-md transition">
+            <h3 class="font-semibold text-lg">To Read</h3>
+            <span class="text-gray-500">{{ user.to_read_count or 0 }} books</span>
+            {% for book in user.to_read_books %}
+            <div class="mt-2">
+              <img src="{{ book.cover }}" class="h-40 object-contain mb-2 rounded" onerror="this.src='/static/default_cover.jpg'">
+              <p class="text-sm font-semibold">{{ book.title }}</p>
+              <p class="text-xs text-gray-600">by {{ book.author }}</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        
+        {% if is_owner %}
+        <a href="{{ url_for('bookshelves') }}" class="text-blue-600 hover:underline mt-4 block">Manage Bookshelves</a>
+        {% endif %}
+      </section>
+      
+      <!-- Activity -->
+      <section class="bg-white p-6 rounded-2xl shadow">
+        <h2 class="text-2xl font-bold mb-4">Recent Activity</h2>
+        <div class="space-y-4">
+          {% for activity in user.recent_activity %}
+          <div>
+            <p><strong>{{ activity.book_title }}</strong> review: ⭐️{{ activity.rating }}/5</p>
+            <p class="text-gray-500 text-sm">Posted {{ activity.timestamp }}</p>
+          </div>
+          {% else %}
+          <p class="text-gray-500">No recent activity yet.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+    </main>
+  </div>
+</body>
+</html>

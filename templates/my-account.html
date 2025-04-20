@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Book Nook - {{ user.name }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="font-sans text-gray-800 min-h-screen" style="background: linear-gradient(to bottom right, rgba(0,0,0,0.9), rgba(58,25,94,0.6));">
+
+  <header class="text-center py-6 text-white text-3xl font-bold tracking-wider">
+    Book Nook
+  </header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 p-6 max-w-7xl mx-auto">
+
+    <!-- Sidebar -->
+    <aside class="lg:col-span-1 space-y-6 sticky top-4 self-start">
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <div class="flex items-center space-x-4">
+          <img src="{{ user.profile_pic or 'https://i.pravatar.cc/60' }}" alt="User" class="rounded-full w-16 h-16">
+          <div>
+            <h2 class="font-bold text-lg">{{ user.name }}</h2>
+            <p class="text-sm text-gray-500">📖 Reading: {{ user.currently_reading }}</p>
+          </div>
+        </div>
+      </div>
+
+      <nav class="bg-white p-4 rounded-2xl shadow space-y-3 text-base">
+        <a href="/bookshelves" class="block hover:underline">📚 My Bookshelves</a>
+        <a href="/reviews" class="block hover:underline">✍️ My Reviews</a>
+        <a href="/posts" class="block hover:underline">📝 My Posts</a>
+        <a href="/recommend" class="block hover:underline">💬 Recommend</a>
+        <a href="/search" class="block hover:underline">🎯 Search</a>
+        <a href="/stats" class="block hover:underline">📊 Stats</a>
+        <a href="/logout" class="block text-red-600 hover:underline">🚪 Logout</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="lg:col-span-3 space-y-6">
+
+      <!-- Profile Section -->
+      <section class="bg-white p-6 rounded-2xl shadow">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-bold">Profile</h2>
+          <a href="{{ url_for('edit_profile') }}" class="text-blue-600 hover:underline">Edit Profile</a>
+        </div>
+
+        <div class="space-y-4">
+          <div class="flex items-center space-x-4">
+            <img src="{{ user.profile_pic or 'https://i.pravatar.cc/60' }}" class="w-16 h-16 rounded-full" alt="Profile Picture">
+            <div>
+              <p class="font-semibold text-xl">{{ user.name }}</p>
+              <p class="text-gray-500">@{{ user.username }}</p>
+              <div class="text-sm text-gray-600 mt-1">
+                <span class="mr-4">👥 <strong>{{ user.followers|length }}</strong> Followers</span>
+                <span>🔗 <strong>{{ user.following|length }}</strong> Following</span>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="font-bold text-lg">Bio</h3>
+            <p class="text-gray-700">{{ user.bio }}</p>
+          </div>
+
+          {% if user.birthday %}
+          <div>
+            <h3 class="font-bold text-lg">Birthday</h3>
+            <p class="text-gray-700">{{ user.birthday }}</p>
+          </div>
+          {% endif %}
+
+          <div>
+            <h3 class="font-bold text-lg">Currently Reading</h3>
+            <p class="text-gray-700">{{ user.currently_reading }}</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Bookshelves -->
+      <section class="bg-white p-6 rounded-2xl shadow">
+        <h2 class="text-2xl font-bold mb-4">Bookshelves</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {% for shelf in bookshelves %}
+          <div class="bg-gray-100 p-4 rounded-xl shadow hover:shadow-md transition flex flex-col items-center">
+            <h3 class="font-semibold text-lg">{{ shelf.shelf_name }}</h3>
+            <span class="text-gray-500">{{ shelf.books | length }} books</span>
+            <div class="mt-4 space-y-3 w-full">
+              {% for book in shelf.books[:3] %}
+              <div class="text-center">
+                <img src="{{ book.cover }}" class="h-32 mx-auto mb-2 rounded object-contain" onerror="this.src='/static/default_cover.jpg'">
+                <p class="text-sm font-semibold">{{ book.title }}</p>
+                <p class="text-xs text-gray-600">by {{ book.author }}</p>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <a href="/bookshelves" class="text-blue-600 hover:underline mt-4 block text-right">Manage Bookshelves</a>
+      </section>
+
+      <!-- Reviews -->
+      <section class="bg-white p-6 rounded-2xl shadow">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold">Recent Reviews</h2>
+            <a href="/reviews" class="text-blue-600 hover:underline">Manage Reviews</a>
+        </div>
+        <div class="space-y-4">
+            {% if reviews %}
+                {% for review in reviews %}
+                    <div class="flex space-x-4">
+                        <!-- Book Cover with Link -->
+                        <a href="{{ review.book_url }}">
+                            <img src="{{ review.book_cover_url }}" 
+                                 alt="{{ review.book_title }} Cover" 
+                                 class="w-16 h-24 object-cover rounded shadow-md">
+                        </a>
+    
+                        <div class="flex-1">
+                            <p><strong>{{ review.book_title }}</strong> — ⭐️ {{ review.rating }}/5</p>
+                            <p class="text-gray-600 italic">“{{ review.review_text[:150] }}...”</p>
+                            <p class="text-sm text-gray-500">Posted {{ review.created_at.strftime('%b %d, %Y') }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-gray-500">No reviews yet.</p>
+            {% endif %}
+        </div>
+    </section>
+          
+
+      <!-- Posts -->
+      <section class="bg-white p-6 rounded-2xl shadow">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-2xl font-bold">Posts</h2>
+          <a href="/posts" class="text-blue-600 hover:underline">Manage Posts</a>
+        </div>
+        <div class="space-y-4">
+          {% for post in user.posts %}
+          <div>
+            <p class="font-semibold">{{ post.content[:100] }}...</p>
+            <p class="text-sm text-gray-500">Posted {{ post.timestamp }}</p>
+          </div>
+          {% else %}
+          <p class="text-gray-500">No posts yet.</p>
+          {% endfor %}
+        </div>
+      </section>
+
+    </main>
+  </div>
+</body>
+</html>

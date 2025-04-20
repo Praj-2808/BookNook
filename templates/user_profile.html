@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ user.name }}'s Profile</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <style>
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #f9f9f9; display: flex; }
+    .sidebar { width: 220px; background: #2d2d2d; color: white; height: 100vh; padding: 1rem; }
+    .main { flex: 1; padding: 2rem; overflow-y: auto; }
+    .profile-header { display: flex; align-items: center; gap: 1.5rem; }
+    .profile-header img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }
+    .profile-info h2 { margin: 0; font-size: 1.5rem; }
+    .profile-info p { margin: 4px 0; color: #555; }
+    .edit-button { background: #0066cc; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+    .profile-content { margin-top: 2rem; }
+    .profile-content h3 { margin-top: 1.5rem; color: #333; }
+    .section-preview { background: white; padding: 1rem; border-radius: 10px; margin-bottom: 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    .view-all { float: right; font-size: 0.9rem; color: #0066cc; text-decoration: none; }
+    #edit-section { background: #fff; padding: 1.5rem; border-radius: 10px; margin-top: 2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
+    #edit-section input, #edit-section textarea { width: 100%; padding: 8px; margin-bottom: 1rem; border: 1px solid #ccc; border-radius: 5px; }
+    #edit-section label { font-weight: bold; display: block; margin-bottom: 5px; }
+    .form-buttons { display: flex; gap: 1rem; }
+    .form-buttons button { padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; }
+    .save-btn { background: #28a745; color: white; }
+    .cancel-btn { background: #dc3545; color: white; }
+  </style>
+</head>
+<body>
+  <!-- Sidebar (reuse your existing sidebar here) -->
+  <div class="sidebar">
+    <!-- Sidebar Content -->
+    <h2>Book Nook</h2>
+    <!-- Your existing sidebar links go here -->
+  </div>
+
+  <!-- Main Profile View -->
+  <div class="main">
+    <div class="profile-header">
+      <img src="{{ user.dp_url or url_for('static', filename='default_dp.jpg') }}" alt="DP">
+      <div class="profile-info">
+        <h2>@{{ user.username }}</h2>
+        <p>{{ user.name }}</p>
+        <p>{{ user.bio }}</p>
+        {% if user.show_birthday %}<p>🎂 {{ user.birthday }}</p>{% endif %}
+        {% if is_owner %}
+          <button class="edit-button" onclick="toggleEdit()">Edit Profile / Settings</button>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="profile-content">
+      <h3>📚 My Bookshelves <a class="view-all" href="/my-bookshelves">View All</a></h3>
+      <div class="section-preview">
+        {% for shelf in user.bookshelves[:3] %}
+          <p><strong>{{ shelf.name }}</strong> – {{ shelf.book_count }} books</p>
+        {% else %}
+          <p>No bookshelves yet.</p>
+        {% endfor %}
+      </div>
+
+      <h3>📝 My Reviews <a class="view-all" href="/my-reviews">View All</a></h3>
+      <div class="section-preview">
+        {% for review in user.reviews[:3] %}
+          <p><strong>{{ review.book_title }}</strong> – ⭐ {{ review.rating }}/5<br>{{ review.text|truncate(100) }}</p>
+        {% else %}
+          <p>No reviews yet.</p>
+        {% endfor %}
+      </div>
+
+      <h3>📢 My Posts</h3>
+      <div class="section-preview">
+        {% for post in user.posts %}
+          <p><strong>{{ post.title }}</strong><br>{{ post.content|truncate(150) }}</p>
+        {% else %}
+          <p>No posts yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    {% if is_owner %}
+    <!-- Edit Profile Section -->
+    <div id="edit-section" style="display:none;">
+      <form method="POST" action="/update-profile" enctype="multipart/form-data">
+        <label for="dp">Profile Picture:</label>
+        <input type="file" name="dp" accept="image/*">
+
+        <label for="name">Name:</label>
+        <input type="text" name="name" value="{{ user.name }}">
+
+        <label for="bio">Bio:</label>
+        <textarea name="bio" rows="3">{{ user.bio }}</textarea>
+
+        <label for="birthday">Birthday:</label>
+        <input type="date" name="birthday" value="{{ user.birthday }}">
+
+        <label>
+          <input type="checkbox" name="show_birthday" {% if user.show_birthday %}checked{% endif %}>
+          Show my birthday on profile
+        </label>
+
+        <div class="form-buttons">
+          <button type="submit" class="save-btn">Save</button>
+          <button type="button" class="cancel-btn" onclick="toggleEdit()">Cancel</button>
+        </div>
+
+        <hr style="margin-top: 2rem;">
+        <a href="/my-bookshelves" class="edit-button">Edit My Bookshelves</a>
+        <a href="/my-reviews" class="edit-button" style="margin-left: 10px;">Edit My Reviews</a>
+      </form>
+    </div>
+    {% endif %}
+  </div>
+
+  <script>
+    function toggleEdit() {
+      const section = document.getElementById("edit-section");
+      section.style.display = (section.style.display === "none") ? "block" : "none";
+    }
+  </script>
+</body>
+</html>

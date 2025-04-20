@@ -8,11 +8,13 @@
 </head>
 <body class="font-sans text-gray-800 min-h-screen" style="background: linear-gradient(to bottom right, rgba(0,0,0,0.9), rgba(58,25,94,0.6));">
 
+
   <!-- Book Nook Header -->
   <header class="text-center py-6 text-white text-3xl font-bold tracking-wider">
      Book Nook
   </header>
 
+  <div>
   <!-- Add Post Button -->
   <div class="fixed bottom-6 right-6 z-50">
     <button onclick="toggleModal()" class="bg-purple-700 text-white px-6 py-3 rounded-full shadow-xl hover:bg-purple-800">
@@ -43,14 +45,20 @@
     <aside class="lg:col-span-1 space-y-6 sticky top-4 self-start">
       <div class="bg-white p-4 rounded-2xl shadow">
         <div class="flex items-center space-x-4">
-            <img src="{{ user.profile_pic or 'https://i.pravatar.cc/60' }}" class="rounded-full w-12 h-12">
-            <div>
+          <a href="{{ url_for('my_account', username=user.username) }}">
+            <img src="{{ user.profile_pic or 'https://i.pravatar.cc/60' }}" class="rounded-full w-12 h-12" alt="User Picture">
+          </a>
+          <div>
             <h2 class="font-bold text-lg">{{ user.name }}</h2>
-            <p class="text-sm text-gray-500">@{{ user.username }}</p>
+            <a href="{{ url_for('my_account', username=user.username) }}">
+              <p class="text-gray-500 text-sm">@{{ user.username }}</p>
+            </a>
             <p class="text-sm text-gray-500">📖 Reading: {{ user.currently_reading }}</p>
           </div>
         </div>
-      </div>
+      </div>      
+      
+      
 
       <nav class="bg-white p-4 rounded-2xl shadow space-y-3 text-base">
         <a href="/bookshelves" class="block hover:underline">📚 My Bookshelves</a>
@@ -98,6 +106,7 @@
     </aside>
   </div>
 
+</div>
   <!-- Post Script (same as you had) -->
   <script>
     function toggleModal() {

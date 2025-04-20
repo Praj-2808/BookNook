@@ -514,6 +514,118 @@ def fetch_book_details(work_key):
             'cover': "https://via.placeholder.com/150x200?text=No+Cover"
         }
 
+# Fetch user profile data
+@app.route('/my-account')
+def my_account():
+    if 'username' not in session:
+        return redirect('/login')
+
+    username = session['username']
+    user = users_collection.find_one({'username': username})
+
+    # Fetch up to 3 most recent reviews
+    reviews = list(reviews_collection.find({'username': username}).sort('created_at', -1).limit(3))
+
+    for review in reviews:
+        # Get book_key and other relevant details
+        book_key = review.get('book_key', 'OL0000000M')
+        review['book_key'] = book_key
+        review['book_url'] = f"/book/{book_key}"
+
+        # Fetch book details from OpenLibrary API
+        try:
+            res = requests.get(f"https://openlibrary.org/{book_key}.json")
+            if res.status_code == 200:
+                data = res.json()
+                review['book_title'] = data.get('title', 'Unknown Title')
+                if 'covers' in data and len(data['covers']) > 0:
+                    cover_id = data['covers'][0]
+                    review['book_cover_url'] = f"https://covers.openlibrary.org/b/id/{cover_id}-L.jpg"
+                else:
+                    review['book_cover_url'] = "/static/default_cover.jpg"
+            else:
+                review['book_title'] = 'Unknown Title'
+                review['book_cover_url'] = "/static/default_cover.jpg"
+        except:
+            review['book_title'] = 'Unknown Title'
+            review['book_cover_url'] = "/static/default_cover.jpg"
+
+    # Fetch bookshelves (same as before)
+    user_shelves = list(bookshelves_collection.find({'username': username}))
+    all_bookshelves = []
+    for shelf in user_shelves:
+        shelf_name = shelf['shelf_name']
+        book_keys = shelf.get('books', [])
+        detailed_books = [fetch_book_details(key) for key in book_keys]
+        all_bookshelves.append({
+            'shelf_name': shelf_name,
+            'books': detailed_books
+        })
+
+    return render_template('my-account.html', user=user, bookshelves=all_bookshelves, reviews=reviews)
+
+@app.route('/edit_profile', methods=['GET', 'POST'])
+def edit_profile():
+    print(f"Session data: {session}")
+    
+    username = session.get('username')
+    if not username:
+        return redirect(url_for('login'))
+
+    user = users_collection.find_one({'username': username})
+    if not user:
+        return "User not found", 404
+
+    if request.method == 'POST':
+        name = request.form.get('name')
+        bio = request.form.get('bio')
+        currently_reading = request.form.get('currently_reading')
+        profile_pic = user.get('profile_picture_url')
+
+        if 'profile_picture' in request.files:
+            file = request.files['profile_picture']
+            if file and file.filename != "":
+                encoded_image = base64.b64encode(file.read()).decode('utf-8')
+                mimetype = file.content_type
+                profile_pic = f"data:{mimetype};base64,{encoded_image}"
+
+        users_collection.update_one(
+            {'username': username},
+            {'$set': {
+                'name': name,
+                'bio': bio,
+                'currently_reading': currently_reading,
+                'profile_picture_url': profile_pic
+            }}
+        )
+
+        session.permanent = True
+        session.modified = True
+
+        return redirect(url_for('my_account'))
+
+    return render_template('edit_profile.html', user=user)
+
+@app.route("/submit-post", methods=["POST"])
+def submit_post():
+    if 'username' not in session:
+        return redirect(url_for('login'))  # Ensure user is logged in
+
+    user = users_collection.find_one({'username': session['username']})
+    if not user:
+        return redirect(url_for('login'))
+
+    content = request.form['content']
+    book_key = request.form.get('book_key')  # Optional book reference
+    post_data = {
+        'user_id': user['_id'],
+        'content': content,
+        'book_key': book_key,
+        'created_at': datetime.utcnow()
+    }
+    
+    posts_collection.insert_one(post_data)
+    return redirect(url_for('feed'))  # Redirect to the feed
 
 
 if __name__ == '__main__':
