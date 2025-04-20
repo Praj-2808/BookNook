@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Your Book Nook Account</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #1e1e2f, #3a195e);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+    }
+    .account-container {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 30px;
+      border-radius: 20px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 500;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 10px;
+      border: none;
+      font-size: 1rem;
+    }
+    button {
+      margin-top: 25px;
+      width: 100%;
+      padding: 12px;
+      background-color: #7e3ff2;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .profile-pic-preview {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="account-container">
+    <h2>📚 Create Your Account</h2>
+    <form action="{{ url_for('create_account') }}" method="POST" enctype="multipart/form-data">
+      
+      <!-- Display Picture -->
+      <label for="profile-pic">Upload Display Picture</label>
+      <input type="file" name="profile_pic" accept="image/*" onchange="previewImage(event)" />
+      <img id="preview" class="profile-pic-preview" src="/static/default-dp.png" alt="Profile Preview" />
+
+
+      <!-- Username -->
+      <label for="username">Username</label>
+      <input type="text" name="username" required />
+
+      <!-- Birthday -->
+      <label for="birthday">Birthday</label>
+      <input type="date" name="birthday" required />
+
+      <!-- Gender -->
+      <label for="gender">Gender</label>
+      <select name="gender" required>
+        <option value="">--Select--</option>
+        <option value="Female">Female</option>
+        <option value="Male">Male</option>
+        <option value="Non-binary">Non-binary</option>
+        <option value="Prefer not to say">Prefer not to say</option>
+      </select>
+
+      <!-- Bio -->
+      <label for="bio">Short Bio</label>
+      <textarea name="bio" rows="3" placeholder="Tell us a little about yourself..."></textarea>
+
+      <!-- Currently Reading -->
+      <label for="currently_reading">Currently Reading</label>
+      <input type="text" name="currently_reading" placeholder="Book title" />
+
+      <button type="submit">Next: Preferences ➡️</button>
+    </form>
+  </div>
+
+  <script>
+    function previewImage(event) {
+      const output = document.getElementById('preview');
+      output.src = URL.createObjectURL(event.target.files[0]);
+    }
+  </script>
+</body>
+</html>

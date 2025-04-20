@@ -1,0 +1,263 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@300;400;600&display=swap');
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Colors */
+:root {
+    --dark-green: #223E2E;
+    --green: #3D5F51;
+    --purple: #8C5181;
+    --dark-purple: #4A1F44;
+    --white: #F5F5F5;
+}
+
+/* Navbar */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--dark-purple);
+    color: white;
+    padding: 15px 30px;
+}
+
+.login {
+    background-color: var(--purple);
+    color: white;
+    padding: 8px 15px;
+    text-decoration: none;
+    border-radius: 5px;
+    transition: 0.3s;
+}
+
+.login:hover {
+    background-color: var(--green);
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(to bottom right, rgba(0,0,0,0.9), rgba(58,25,94,0.6));
+    z-index: -1;
+}
+
+/* Hero Section */
+header {
+    height: 400px;
+    background: url('your-book-image.jpg') no-repeat center center/cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    position: relative;
+}
+
+header::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(34, 62, 46, 0.6);
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 600px;
+}
+
+.hero-content h2 {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    font-family: 'Playfair Display', serif;
+}
+
+.cta-button {
+    background-color: var(--purple);
+    padding: 10px 20px;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.cta-button:hover {
+    background-color: var(--green);
+}
+
+/* Features Section */
+.features {
+    padding: 50px 20px;
+    background-color: var(--white);
+    text-align: center;
+}
+
+.features h2 {
+    font-size: 2rem;
+    color: var(--dark-purple);
+    margin-bottom: 20px;
+}
+
+.feature-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    max-width: 1000px;
+    margin: auto;
+}
+
+.card {
+    background-color: var(--green);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    transition: 0.3s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    background-color: var(--dark-green);
+}
+
+.card i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+/* Footer */
+footer {
+    background-color: var(--dark-purple);
+    color: white;
+    text-align: center;
+    padding: 15px;
+    margin-top: 30px;
+}
+.login-container {
+    width: 500px;
+    margin: 100px auto;
+    padding: 20px;
+    background: #2b5a2b;
+    border-radius: 10px;
+}
+
+.dashboard {
+    width: 300px;
+    margin: 100px auto;
+    padding: 20px;
+    background: #2b5a2b;
+    border-radius: 10px;
+}
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 5px;
+}
+
+button {
+    background: #8a3ffc;
+    color: #fff;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #a55ff7;
+}
+
+#error-message {
+    color: red;
+    font-size: 14px;
+}
+/* Preferences Page Styling */
+.preferences-container {
+    max-width: 600px;
+    margin: 40px auto;
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Heading */
+.preferences-container h2 {
+    text-align: center;
+    color: #4A235A;
+    font-size: 24px;
+}
+
+/* Labels & Inputs */
+.preferences-container label {
+    display: block;
+    font-weight: 500;
+    margin-top: 15px;
+    color: #333;
+}
+
+/* Styled Select Dropdown */
+.preferences-container select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #6A0DAD;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #333;
+    background-color: #fff;
+}
+
+/* Genre Checkboxes */
+.genre-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.genre-options label {
+    background: #E6E6FA;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.genre-options label:hover {
+    background: #D8BFD8;
+}
+
+/* Favorite Author & Book */
+.preferences-container input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #6A0DAD;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+/* Submit Button */
+.preferences-container button {
+    width: 100%;
+    padding: 12px;
+    background: #6A0DAD;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+}
+
+.preferences-container button:hover {
+    background: #4A235A;
+}

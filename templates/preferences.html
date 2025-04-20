@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Preferences</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="preferences-container">
+        <h2>📚 Tell Us About Your Reading Preferences</h2>
+        <form action="{{ url_for('preferences') }}" method="POST">
+        
+            <label for="fiction-choice">Do you prefer Fiction or Non-Fiction?</label>
+            <select id="fiction-choice" name="fiction-choice">  
+                <option value="Fiction">Fiction</option>
+                <option value="Non-Fiction">Non-Fiction</option>
+                <option value="Both">Both</option>
+            </select>
+    
+            <label>What are your favorite genres?</label>
+            <div class="genre-options">
+                <label><input type="checkbox" name="genre" value="Romance"> Romance</label>
+                <label><input type="checkbox" name="genre" value="Thriller"> Thriller</label>
+                <label><input type="checkbox" name="genre" value="Self-help"> Self-help</label>
+                <label><input type="checkbox" name="genre" value="Sci-Fi"> Sci-Fi</label>
+                <label><input type="checkbox" name="genre" value="Fantasy"> Fantasy</label>
+                <label><input type="checkbox" name="genre" value="Mystery"> Mystery</label>
+            </div>
+    
+            <label for="fav-author">Who is your favorite author?</label>
+            <input type="text" id="fav-author" name="fav_author" placeholder="e.g. J.K. Rowling, Agatha Christie">  <!-- ✅ FIXED -->
+    
+            <label for="reading-goal">What is your reading goal?</label>
+            <select id="reading-goal" name="reading_goal">  
+                <option value="1 book per month">1 book per month</option>
+                <option value="2 books per month">2 books per month</option>
+                <option value="1 book per week">1 book per week</option>
+            </select>
+    
+            <label for="fav-book">What is your all-time favorite book?</label>
+            <input type="text" id="fav-book" name="fav_book" placeholder="e.g. The Alchemist, 1984">  
+    
+            <button type="submit">Save Preferences</button> 
+        </form>
+    </div>
+    
+    <script src="/static/script.js"></script>
+</body>
+</html>

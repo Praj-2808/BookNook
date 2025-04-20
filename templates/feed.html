@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Book Nook Feed</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="font-sans text-gray-800 min-h-screen" style="background: linear-gradient(to bottom right, rgba(0,0,0,0.9), rgba(58,25,94,0.6));">
+
+  <!-- Book Nook Header -->
+  <header class="text-center py-6 text-white text-3xl font-bold tracking-wider">
+     Book Nook
+  </header>
+
+  <!-- Add Post Button -->
+  <div class="fixed bottom-6 right-6 z-50">
+    <button onclick="toggleModal()" class="bg-purple-700 text-white px-6 py-3 rounded-full shadow-xl hover:bg-purple-800">
+      ➕ Add Post
+    </button>
+  </div>
+
+  <!-- Post Modal -->
+  <div id="postModal" class="hidden fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-xl p-6 w-full max-w-lg space-y-4 relative">
+      <button onclick="toggleModal()" class="absolute top-2 right-4 text-gray-500 text-xl">×</button>
+      <h2 class="text-xl font-bold">Create New Post</h2>
+
+      <textarea id="postText" class="w-full border rounded p-2" rows="3" placeholder="What's on your mind?"></textarea>
+      <input id="quote" type="text" class="w-full border rounded p-2" placeholder="Quote (optional)">
+      <input id="taggedBook" type="text" class="w-full border rounded p-2" placeholder="Tag a Book">
+      <input id="hashtags" type="text" class="w-full border rounded p-2" placeholder="#hashtags">
+      <input type="file" id="postImage" class="w-full"/>
+
+      <button onclick="submitPost()" class="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-800">Post</button>
+    </div>
+  </div>
+
+  <!-- Feed Container -->
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 p-4 max-w-7xl mx-auto">
+    
+    <!-- Left Sidebar -->
+    <aside class="lg:col-span-1 space-y-6 sticky top-4 self-start">
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <div class="flex items-center space-x-4">
+            <img src="{{ user.profile_pic or 'https://i.pravatar.cc/60' }}" class="rounded-full w-12 h-12">
+            <div>
+            <h2 class="font-bold text-lg">{{ user.name }}</h2>
+            <p class="text-sm text-gray-500">@{{ user.username }}</p>
+            <p class="text-sm text-gray-500">📖 Reading: {{ user.currently_reading }}</p>
+          </div>
+        </div>
+      </div>
+
+      <nav class="bg-white p-4 rounded-2xl shadow space-y-3 text-base">
+        <a href="/bookshelves" class="block hover:underline">📚 My Bookshelves</a>
+        <a href="/reviews" class="block hover:underline">✍️ My Reviews</a>
+        <a href="/recommend" class="block hover:underline">💬 Recommend</a>
+        <a href="/search" class="block hover:underline">🎯 Search</a>
+        <a href="/stats" class="block hover:underline">📊 Stats</a>
+        <a href="/logout" class="block text-red-600 hover:underline">🚪 Logout</a>
+      </nav>
+    </aside>
+
+    <!-- Main Feed -->
+    <main class="lg:col-span-2 space-y-6" id="postFeed">
+      <!-- Posts will appear here -->
+    </main>
+
+    <!-- Right Sidebar -->
+    <aside class="lg:col-span-1 space-y-6 sticky top-4 self-start">
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <h2 class="font-bold text-lg mb-2">📖 Recommendations</h2>
+        <ul class="space-y-2 text-sm">
+          <li>• If We Were Villains</li>
+          <li>• The Secret History</li>
+          <li>• Six of Crows</li>
+        </ul>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <h2 class="font-bold text-lg mb-2">🔥 Trending Books</h2>
+        <ul class="space-y-2 text-sm">
+          <li>• A Little Life</li>
+          <li>• Iron Flame</li>
+          <li>• Divine Rivals</li>
+        </ul>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <h2 class="font-bold text-lg mb-2">👯 Friends’ Activity</h2>
+        <ul class="space-y-2 text-sm">
+          <li>📌 Anya added <i>Daisy Jones</i></li>
+          <li>📖 Zara is reading <i>Normal People</i></li>
+          <li>✍️ Leo reviewed <i>Shatter Me</i></li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Post Script (same as you had) -->
+  <script>
+    function toggleModal() {
+      document.getElementById('postModal').classList.toggle('hidden');
+    }
+
+    function submitPost() {
+      const text = document.getElementById('postText').value;
+      const quote = document.getElementById('quote').value;
+      const taggedBook = document.getElementById('taggedBook').value;
+      const hashtags = document.getElementById('hashtags').value;
+      const imageFile = document.getElementById('postImage').files[0];
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const imageUrl = e.target.result;
+
+        const post = {
+          username: "{{ user.username }}",
+          time: new Date().toLocaleString(),
+          text,
+          quote,
+          book: taggedBook,
+          hashtags,
+          imageUrl
+        };
+
+        addPostToFeed(post);
+        toggleModal();
+        document.getElementById("postText").value = "";
+        document.getElementById("quote").value = "";
+        document.getElementById("taggedBook").value = "";
+        document.getElementById("hashtags").value = "";
+        document.getElementById("postImage").value = "";
+      };
+
+      if (imageFile) {
+        reader.readAsDataURL(imageFile);
+      } else {
+        const post = {
+          username: "{{ user.username }}",
+          time: new Date().toLocaleString(),
+          text,
+          quote,
+          book: taggedBook,
+          hashtags,
+          imageUrl: null
+        };
+        addPostToFeed(post);
+        toggleModal();
+      }
+    }
+
+    function addPostToFeed(post) {
+      const feed = document.getElementById("postFeed");
+
+      const postHTML = `
+        <div class="bg-white p-4 rounded-2xl shadow space-y-3">
+          <div class="flex items-center space-x-3">
+            <img src="https://i.pravatar.cc/50?u=${post.username}" class="w-10 h-10 rounded-full" alt="">
+            <div>
+              <p class="font-semibold">@${post.username}</p>
+              <p class="text-sm text-gray-500">${post.time}</p>
+            </div>
+          </div>
+          <p>${post.text}</p>
+          ${post.quote ? `<div class="bg-purple-50 p-3 rounded-xl border-l-4 border-purple-400 italic">“${post.quote}”</div>` : ""}
+          ${post.imageUrl ? `<img src="${post.imageUrl}" alt="Post Image" class="w-full rounded-xl"/>` : ""}
+          ${post.book ? `<p class="text-sm text-blue-700">📖 Tagged Book: <strong>${post.book}</strong></p>` : ""}
+          ${post.hashtags ? `<div class="text-sm text-purple-600">${post.hashtags.split(",").map(tag => "#" + tag.trim()).join(" ")}</div>` : ""}
+          <div class="flex justify-between pt-2 text-gray-500 text-sm">
+            <div class="space-x-4">
+              <button onclick="this.innerText = '❤️ Liked'">🤍 Like</button>
+              <button>💬 Comment</button>
+              <button>📌 Save</button>
+            </div>
+            <button>➕ Add to Shelf</button>
+          </div>
+        </div>
+      `;
+
+      feed.insertAdjacentHTML("afterbegin", postHTML);
+    }
+  </script>
+</body>
+</html>

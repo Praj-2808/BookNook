@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Book Nook</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel&family=Libre+Baskerville&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles-index.css"> 
+    <script src="https://kit.fontawesome.com/YOUR_FONT_AWESOME_KIT.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <header class="hero">
+        <div class="hero-overlay">
+            <div class="top-bar">
+                <h1 class="logo">Book Nook</h1>
+                <a href="{{ url_for('login') }}" class="login-link">Login</a>
+            </div>
+    
+            <div class="hero-center">
+                <h2 class="quote">“In the quiet of libraries, we find pieces of ourselves we forgot we left behind. ”</h2>
+                <a href="{{ url_for('signup') }}" class="cta-button">Sign Up</a>
+            </div>
+        </div>
+    </header>
+    
+
+    <!-- Features -->
+    <section class="features">
+        <h2>Why You'll Love Book Nook</h2>
+        <div class="feature-cards">
+            <div class="card">
+                <i class="fas fa-tags"></i>
+                <h3>Custom Tags & Lists</h3>
+                <p>Organize books your way.</p>
+            </div>
+            <div class="card">
+                <i class="fas fa-star-half-alt"></i>
+                <h3>Half & Quarter Stars</h3>
+                <p>More accurate ratings.</p>
+            </div>
+            <div class="card">
+                <i class="fas fa-heart"></i>
+                <h3>Discover by Mood</h3>
+                <p>Find books based on feelings.</p>
+            </div>
+            <div class="card">
+                <i class="fas fa-chart-line"></i>
+                <h3>Track Your Reading</h3>
+                <p>Stay on top of goals.</p>
+            </div>
+            <div class="card">
+                <i class="fas fa-comments"></i>
+                <h3>Join Book Clubs</h3>
+                <p>Discuss with fellow readers.</p>
+            </div>
+            <div class="card">
+                <i class="fas fa-trophy"></i>
+                <h3>Reading Challenges</h3>
+                <p>Set & achieve reading goals.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>© 2025 Prajakta Mishra | All Rights Reserved</p>
+    </footer>
+
+    <script src="static/script.js"></script>
+</body>
+</html>

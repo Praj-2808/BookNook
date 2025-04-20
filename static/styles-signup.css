@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Poppins:wght@300;400;600&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+:root {
+    --dark-green: #223E2E;
+    --green: #3D5F51;
+    --purple: #8C5181;
+    --dark-purple: #4A1F44;
+    --white: #F5F5F5;
+}
+
+/* Background gradient */
+body {
+    min-height: 100vh;
+    background: linear-gradient(to bottom right, rgba(0,0,0,0.9), rgba(58,25,94,0.6));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Signup Container Layout */
+.signup-wrapper {
+    display: flex;
+    width: 900px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+}
+
+/* Left Side – Abstract Book Image */
+.signup-image {
+    flex: 1;
+    background: url('https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c') no-repeat center center/cover;
+}
+
+/* Right Side – Signup Form */
+.signup-box {
+    flex: 1;
+    padding: 40px;
+    background: var(--green);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.signup-box h2 {
+    font-family: 'Playfair Display', serif;
+    color: white;
+    font-size: 28px;
+    margin-bottom: 10px;
+}
+
+.signup-box p {
+    color: #d2d2d2;
+    margin-bottom: 25px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+button {
+    background: #8a3ffc;
+    color: white;
+    padding: 12px;
+    font-weight: bold;
+    border: none;
+    border-radius: 6px;
+    margin-top: 15px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: #a55ff7;
+}
+
+.signup-box .login-link {
+    margin-top: 20px;
+    color: #eee;
+}
+
+.signup-box .login-link a {
+    color: #ccc;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.signup-box .login-link a:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .signup-wrapper {
+        flex-direction: column;
+        width: 90%;
+    }
+
+    .signup-image {
+        height: 200px;
+    }
+}
+
+.signup-image {
+    flex: 1;
+    background: url(image.jpg) no-repeat center center/cover;
+}
+
+.login-image{
+    flex:1;
+    background: url(image2.jpg) no-repeat center center/cover;
+}

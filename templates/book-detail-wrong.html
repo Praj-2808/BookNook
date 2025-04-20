@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Book Details - Book Nook</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(to bottom right, rgba(0,0,0,0.9), rgba(58,25,94,0.6));
+    }
+    textarea {
+      resize: vertical;
+    }
+  </style>
+</head>
+<body class="font-sans text-gray-800 min-h-screen">
+  <!-- Book Nook Header -->
+  <header class="text-center py-6 text-white text-3xl font-bold tracking-wider">
+    Book Nook
+  </header>
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 p-4 max-w-7xl mx-auto">
+    <!-- Left Sidebar -->
+    <aside class="lg:col-span-1 space-y-6 sticky top-4 self-start">
+      <div class="bg-white p-4 rounded-2xl shadow">
+        <div class="flex items-center space-x-4">
+            <img src="{{ user.profile_pic or 'https://i.pravatar.cc/60' }}" class="rounded-full w-12 h-12">
+            <div>
+            <h2 class="font-bold text-lg">{{ user.name }}</h2>
+            <p class="text-sm text-gray-500">@{{ user.username }}</p>
+            <p class="text-sm text-gray-500">📖 Reading: {{ user.currently_reading }}</p>
+          </div>
+        </div>
+      </div>
+
+      <nav class="bg-white p-4 rounded-2xl shadow space-y-3 text-base">
+        <a href="/bookshelves" class="block hover:underline">📚 My Bookshelves</a>
+        <a href="/reviews" class="block hover:underline">✍️ My Reviews</a>
+        <a href="/recommend" class="block hover:underline">💬 Recommend</a>
+        <a href="/search" class="block hover:underline">🎯 Search</a>
+        <a href="/stats" class="block hover:underline">📊 Stats</a>
+        <a href="/logout" class="block text-red-600 hover:underline">🚪 Logout</a>
+      </nav>
+    </aside>
+    <!-- Main Content -->
+    <main class="lg:col-span-2 space-y-6">
+      <div id="bookDetails" class="bg-white text-black p-6 rounded-2xl shadow space-y-4">
+        <!-- Book details will be loaded here -->
+      </div>
+
+      <!-- Add to Bookshelf -->
+      <div class="bg-white text-black p-6 rounded-2xl shadow space-y-4">
+        <h2 class="text-xl font-bold">📚 Add to Bookshelf</h2>
+        <div class="space-y-2">
+          <select class="w-full p-2 border border-gray-300 rounded" id="bookshelfSelect">
+            <option value="">Select Existing Shelf</option>
+            <option value="favorites">Favorites</option>
+            <option value="to-read">To Read</option>
+            <option value="currently-reading">Currently Reading</option>
+          </select>
+          <input type="text" class="w-full p-2 border border-gray-300 rounded" placeholder="Or Create New Shelf" id="newShelfInput" />
+          <button class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Add Book</button>
+        </div>
+      </div>
+
+      <!-- Leave a Review -->
+      <div class="bg-white text-black p-6 rounded-2xl shadow space-y-4">
+        <h2 class="text-xl font-bold">⭐ Write a Review</h2>
+        <div class="space-y-2">
+          <label class="block font-medium">Rating</label>
+          <select id="rating" class="w-full p-2 border border-gray-300 rounded">
+            <option>1 ⭐</option>
+            <option>2 ⭐⭐</option>
+            <option>3 ⭐⭐⭐</option>
+            <option>4 ⭐⭐⭐⭐</option>
+            <option>5 ⭐⭐⭐⭐⭐</option>
+          </select>
+
+          <label class="block font-medium mt-2">Review</label>
+          <textarea class="w-full p-2 border border-gray-300 rounded" rows="4" placeholder="What did you think about the book?"></textarea>
+          <button class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">Submit Review</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Sidebar -->
+    <aside class="lg:col-span-1 space-y-6 sticky top-4 self-start">
+      <div class="bg-white text-black p-4 rounded-2xl shadow">
+        <h2 class="font-bold text-lg mb-2">📖 Recommendations</h2>
+        <ul class="space-y-2 text-sm">
+          <li>• If We Were Villains</li>
+          <li>• The Secret History</li>
+          <li>• Six of Crows</li>
+        </ul>
+      </div>
+
+      <div class="bg-white text-black p-4 rounded-2xl shadow">
+        <h2 class="font-bold text-lg mb-2">🔥 Trending Books</h2>
+        <ul class="space-y-2 text-sm">
+          <li>• A Little Life</li>
+          <li>• Iron Flame</li>
+          <li>• Divine Rivals</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+  async function loadBookDetails() {
+  const params = new URLSearchParams(window.location.search);
+  const bookKey = params.get('book'); // /works/OL82563W
+
+  if (!bookKey) {
+    alert("Book key is missing in the URL!");
+    return;
+  }
+
+  try {
+    const res = await fetch(`https://openlibrary.org${bookKey}.json`);
+    if (!res.ok) {
+      throw new Error("Failed to fetch book details");
+    }
+
+    const book = await res.json();
+
+    const title = book.title || "No Title";
+    const description = book.description?.value || book.description || "No description available.";
+    const coverID = book.covers ? book.covers[0] : null;
+    const coverURL = coverID ? `https://covers.openlibrary.org/b/id/${coverID}-L.jpg` : 'https://via.placeholder.com/200x300?text=No+Cover';
+
+    const authorRes = book.authors?.[0]?.author?.key
+      ? await fetch(`https://openlibrary.org${book.authors[0].author.key}.json`)
+      : null;
+    const authorData = authorRes ? await authorRes.json() : null;
+    const authorName = authorData?.name || "Unknown Author";
+
+    document.getElementById('bookDetails').innerHTML = `
+      <div class="flex flex-col md:flex-row gap-6">
+        <img src="${coverURL}" class="w-40 h-60 object-cover rounded shadow" />
+        <div class="space-y-2">
+          <h1 class="text-3xl font-bold">${title}</h1>
+          <p class="text-md text-gray-600">👤 ${authorName}</p>
+          <p class="text-sm text-gray-700">${description}</p>
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    console.error("Error fetching book details:", error);
+    alert("Sorry, we couldn't fetch the book details. Please try again later.");
+  }
+}
+
+window.onload = loadBookDetails;
+
+  </script>
+
+</body>
+</html>
